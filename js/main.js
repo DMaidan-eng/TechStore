@@ -48,11 +48,11 @@ const itemDePrueba = new ItemCarrito(producto3, 3);
 console.log("Subtotal de 3 Teclados:", itemDePrueba.productosCarrito());
 
 function mostrarCatalogo() {
-  let texto = "Catálogo\n";
-  catalogo.forEach(prod => {
-    texto += `ID: ${prod.id} | ${prod.nombre} - $${prod.precio} [categoria: ${prod.categoria}] (Stock : ${prod.stock})\n`;
-  });
-  console.log(texto);
+  const lineas = catalogo.map(
+    (prod) =>
+      `ID: ${prod.id} | ${prod.nombre} - $${prod.precio} [categoria:${prod.categoria}] (stock : ${prod.stock})`
+  );
+  const texto = "Catalogo\n\n" + lineas.join("\n");
   return texto;
 }
 
@@ -72,14 +72,22 @@ function filtroCategoria() {
 }
 
 function agregarCarrito() {
-  const seleccion = parseInt(prompt(`${mostrarCatalogo()} \nIngresa el ID del producto que deseas comprar:`));
+  const hayStock = catalogo.some((p) => p.stock > 0);
+  if (!hayStock) {
+    alert ("Lo sentimos, no hay Stock disponible");
+    return; 
+  }
 
-  const prod = catalogo.find(p => p.id === seleccion);
 
-  if (!prod) {
-    alert("Error; Producto no encontrado.");
-    console.log("Error; Producto no encontrado.");
-    return;
+  const seleccion = parseInt(
+    prompt(`${mostrarCatalogo()} \ningresa el ID del producto que deseas comprar:`)
+  );
+  const prod = catalogo.find((p) => p.id === seleccion);
+
+  if(!prod) {
+    alert("Error no se encontro el producto")
+    console.log("Error no se encontro el producto")
+    return
   }
 
   const cant = parseInt(prompt(`¿Cuantas unidades de ${prod.nombre} deseas? (Stock: ${prod.stock})`));
@@ -108,14 +116,11 @@ function verCompra() {
   }
 
   let resumen = "Tu Resumen\n";
-  let subtotal = 0;
-
-  carrito.forEach((item, index) => {
-    const subtotalItem = item.productosCarrito();
-    subtotal += subtotalItem;
-    resumen += `${index + 1}. ${item.producto.nombre} x${item.cantidad}= $${subtotalItem}\n`;
+  carrito.forEach((item, index) =>{
+    resumen += `${index + 1}. ${item.producto.nombre} x${item.cantidad} = $${item.productosCarrito()}\n`;
   });
 
+  const subtotal = carrito.reduce((acc, item) => acc + item.productosCarrito(), 0);
   const impuesto = iva(subtotal);
   const totalPagar = subtotal + impuesto;
 
