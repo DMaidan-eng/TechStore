@@ -22,7 +22,7 @@ class ItemCarrito {
     this.producto = producto;
     this.cantidad = cantidad;
   }
-  productosCarrito() {
+  calcularSubtotal() {
     return this.producto.precio * this.cantidad;
   }
 }
@@ -37,15 +37,7 @@ const catalogo = [producto1, producto2, producto3, producto4, producto5];
 
 const carrito = [];
 
-const iva = (monto) => monto * 0.21;
-
-console.log(catalogo);
-
-console.log("Stock antes:", producto1.stock);
-producto1.descontarStock(2);
-console.log("Stock después de descontar:", producto1.stock);
-const itemDePrueba = new ItemCarrito(producto3, 3);
-console.log("Subtotal de 3 Teclados:", itemDePrueba.productosCarrito());
+const calcularIva = (monto) => monto * 0.21;
 
 function mostrarCatalogo() {
   const lineas = catalogo.map(
@@ -56,7 +48,7 @@ function mostrarCatalogo() {
   return texto;
 }
 
-function filtroCategoria() {
+function filtrarPorCategoria() {
   const cat = prompt("Ingresa la Categoria que quieras (Electronica, Accesorios, Audio)");
   if (!cat) return "Busqueda cancelada";
   const busqueda = cat.trim().toLocaleLowerCase();
@@ -78,7 +70,6 @@ function agregarCarrito() {
     return; 
   }
 
-
   const seleccion = parseInt(
     prompt(`${mostrarCatalogo()} \ningresa el ID del producto que deseas comprar:`)
   );
@@ -86,42 +77,37 @@ function agregarCarrito() {
 
   if(!prod) {
     alert("Error no se encontro el producto")
-    console.log("Error no se encontro el producto")
     return
   }
 
   const cant = parseInt(prompt(`¿Cuantas unidades de ${prod.nombre} deseas? (Stock: ${prod.stock})`));
   if (isNaN(cant) || cant <= 0) {
     alert("No tenemos esa Cantidad");
-    console.log("No tenemos esa Cantidad");
     return;
   }
 
   if (!prod.descontarStock(cant)) {
     alert(`Stock insuficiente. Disponibles: ${prod.stock}`);
-    console.log("Stock insuficiente:", prod.nombre, "disponibles:", prod.stock);
     return;
   }
 
   carrito.push(new ItemCarrito(prod, cant));
   alert(`${prod.nombre}(x${cant}) agregado al carrito`);
-  console.log("Producto Agregado:", prod);
 }
 
 function verCompra() {
   if (carrito.length === 0) {
     alert("Carrito Vacio");
-    console.log("Carrito vacio");
     return;
   }
 
   let resumen = "Tu Resumen\n";
   carrito.forEach((item, index) =>{
-    resumen += `${index + 1}. ${item.producto.nombre} x${item.cantidad} = $${item.productosCarrito()}\n`;
+    resumen += `${index + 1}. ${item.producto.nombre} x${item.cantidad} = $${item.calcularSubtotal()}\n`;
   });
 
-  const subtotal = carrito.reduce((acc, item) => acc + item.productosCarrito(), 0);
-  const impuesto = iva(subtotal);
+  const subtotal = carrito.reduce((acc, item) => acc + item.calcularSubtotal(), 0);
+  const impuesto = calcularIva(subtotal);
   const totalPagar = subtotal + impuesto;
 
   resumen += `\nsubtotal: $${subtotal.toFixed(2)}\n`;
@@ -129,18 +115,14 @@ function verCompra() {
   resumen += `Total a Pagar: $${totalPagar.toFixed(2)}`;
 
   alert(resumen);
-  console.log(resumen);
 
   const confirmarCompra = prompt("¿Desea Finalizar la Compra?(Escribe Si para Confirmar)");
 
   if ((confirmarCompra || "").trim().toUpperCase() === "SI") {
     alert("Tu compra se confirmo con Exito");
-    console.log("Recibo de Compra");
-    console.log(resumen);
     return true;
   } else {
     alert("Falta Confirmar Compra");
-    console.log("Falta Confirmar Compra");
     return false;
   }
 }
@@ -163,7 +145,7 @@ function iniciar() {
         alert(mostrarCatalogo());
         break;
       case "2":
-        alert(filtroCategoria());
+        alert(filtrarPorCategoria());
         break;
       case "3":
         agregarCarrito();

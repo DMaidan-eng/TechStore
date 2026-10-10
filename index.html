@@ -5,8 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador</title>
     <script src="js/main.js" defer></script>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <h1>TechStore</h1>
+
+    <div class="flex-container">
+        <div class="seccion">
+            <h2>Catalogo</h2>
+            <div class="filtro-box">
+                <label for="selec-categoria">Filtrar por Categoria:</label>
+                <select id="selec-categoria">
+                    <option value="todas">Todas</opction>
+                    <option value="Electronica">Electronica</option>
+                    <option value="Accesorios">Accesorios</option>
+                    <option value="Audio">Audio</option>
+                </select>
+            </div>
+            <div id="contenedor-productos" class="grid-productos"></div>
+        </div>
+        <div class="seccion">
+            <h2>Tu Carrito</h2>
+            <ul id="lista=carrito">
+                <li>El Carrito esta Vacio</li>
+            </ul>
+            <div id="resumen-total" class="total-box">Total: $0.00</div>
+            <button id="btn-finalizar">Finalizar Compra</button>
+        </div>
+    </div>
+
+
+
+
 </body>
 </html>
