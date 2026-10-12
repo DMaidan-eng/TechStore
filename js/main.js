@@ -27,142 +27,209 @@ class ItemCarrito {
   }
 }
 
-const producto1 = new Producto(1, "Laptop", 1200, "Electronica", 5);
-const producto2 = new Producto(2, "Mouse", 25, "Accesorios", 15);
-const producto3 = new Producto(3, "Teclado", 85, "Accesorios", 10);
-const producto4 = new Producto(4, "Auriculares", 60, "Audio", 10);
-const producto5 = new Producto(5, "Monitor", 250, "Electronica", 6);
-
-const catalogo = [producto1, producto2, producto3, producto4, producto5];
+const catalogo = [
+  new Producto(1, "Laptop", 1200, "Electronica", 5),
+  new Producto(2, "Mouse", 25, "Accesorios", 15),
+  new Producto(3, "Teclado", 85, "Accesorios", 10),
+  new Producto(4, "Auriculares", 60, "Audio", 10),
+  new Producto(5, "Monitor", 250, "Electronica", 6)
+];
 
 const carrito = [];
 
 const calcularIva = (monto) => monto * 0.21;
 
-function mostrarCatalogo() {
-  const lineas = catalogo.map(
-    (prod) =>
-      `ID: ${prod.id} | ${prod.nombre} - $${prod.precio} [categoria:${prod.categoria}] (stock : ${prod.stock})`
-  );
-  const texto = "Catalogo\n\n" + lineas.join("\n");
-  return texto;
+const contenedorProductos = document.getElementById("contenedor-productos");
+const listaCarrito = document.getElementById("lista-carrito");
+const resumenTotal = document.getElementById("resumen-total");
+const selectCategoria = document.getElementById("selec-categoria");
+const btnFinalizar = document.getElementById("btn-finalizar");
+const cajaMensaje = document.getElementById("mensaje");
+const inputBusqueda = document.getElementById("input-busqueda");
+const inputNombre = document.getElementById("input-nombre");
+const inputPrecio = document.getElementById("input-precio");
+const inputStock = document.getElementById("input-stock");
+const selectNuevaCategoria = document.getElementById("select-nueva-categoria");
+const btnAgregarProducto = document.getElementById("btn-agregar-producto");
+
+function mostrarMensaje(texto, tipo) {
+  cajaMensaje.textContent = texto;
+  cajaMensaje.className = `mensaje ${tipo}`;
+  cajaMensaje.style.display = "block";
+  setTimeout(() => {
+    cajaMensaje.style.display = "none";
+  }, 2500);
 }
 
-function filtrarPorCategoria() {
-  const cat = prompt("Ingresa la Categoria que quieras (Electronica, Accesorios, Audio)");
-  if (!cat) return "Busqueda cancelada";
-  const busqueda = cat.trim().toLocaleLowerCase();
-  const resultado = catalogo.filter(prod =>
-    prod.categoria.toLocaleLowerCase() === busqueda
-  );
-  if (resultado.length === 0) return "No se encontraron productos";
-  let texto = "";
-  resultado.forEach(prod => {
-    texto += `ID: ${prod.id} | ${prod.nombre} - $${prod.precio} (Stock : ${prod.stock})\n`;
+function renderizarProductos(productosAMostrar) {
+  contenedorProductos.innerHTML = "";
+
+  productosAMostrar.forEach((prod) => {
+    const tarjeta = document.createElement("div");
+    tarjeta.className = "tarjeta-producto";
+    tarjeta.innerHTML = `
+      <h3>${prod.nombre}</h3>
+      <p><strong>Categoria:</strong> ${prod.categoria}</p>
+      <p><strong>Precio:</strong> $${prod.precio}</p>
+      <p><strong>Stock:</strong> <span id="stock-${prod.id}">${prod.stock}</span></p>
+      <button class="btn-agregar" data-id="${prod.id}">Agregar al Carrito</button>
+    `;
+    contenedorProductos.appendChild(tarjeta);
   });
-  return texto;
+
+  document.querySelectorAll(".btn-agregar").forEach((boton) => {
+    boton.addEventListener("click", (e) => {
+      const idProd = parseInt(e.target.getAttribute("data-id"));
+      agregarAlCarrito(idProd);
+    });
+  });
 }
 
-function agregarCarrito() {
-  const hayStock = catalogo.some((p) => p.stock > 0);
-  if (!hayStock) {
-    alert ("Lo sentimos, no hay Stock disponible");
-    return; 
+function obtenerProductosFiltrados() {
+  const categoriaSeleccionada = selectCategoria.value;
+  const textoBusqueda = inputBusqueda.value.trim().toLowerCase();
+
+  let resultado = catalogo;
+
+  if (categoriaSeleccionada !== "todas") {
+    resultado = resultado.filter((p) => p.categoria === categoriaSeleccionada);
   }
 
-  const seleccion = parseInt(
-    prompt(`${mostrarCatalogo()} \ningresa el ID del producto que deseas comprar:`)
-  );
-  const prod = catalogo.find((p) => p.id === seleccion);
-
-  if(!prod) {
-    alert("Error no se encontro el producto")
-    return
+  if (textoBusqueda !== "") {
+    resultado = resultado.filter((p) =>
+      p.nombre.toLowerCase().includes(textoBusqueda)
+    );
   }
 
-  const cant = parseInt(prompt(`¿Cuantas unidades de ${prod.nombre} deseas? (Stock: ${prod.stock})`));
-  if (isNaN(cant) || cant <= 0) {
-    alert("No tenemos esa Cantidad");
+  return resultado;
+}
+
+function agregarAlCarrito(id) {
+  const prod = catalogo.find((p) => p.id === id);
+
+  if (!prod) {
+    mostrarMensaje("Producto no encontrado", "error");
     return;
   }
 
-  if (!prod.descontarStock(cant)) {
-    alert(`Stock insuficiente. Disponibles: ${prod.stock}`);
+  if (!prod.descontarStock(1)) {
+    mostrarMensaje(`Sin stock suficiente de ${prod.nombre}`, "error");
     return;
   }
 
-  carrito.push(new ItemCarrito(prod, cant));
-  alert(`${prod.nombre}(x${cant}) agregado al carrito`);
+  const itemExiste = carrito.find((item) => item.producto.id === id);
+
+  if (itemExiste) {
+    itemExiste.cantidad++;
+  } else {
+    carrito.push(new ItemCarrito(prod, 1));
+  }
+
+  mostrarMensaje(`${prod.nombre} agregado al carrito`, "exito");
+  actualizarCarritoDOM();
+  renderizarProductos(obtenerProductosFiltrados());
 }
 
-function verCompra() {
+function eliminarDelCarrito(id) {
+  const indice = carrito.findIndex((item) => item.producto.id === id);
+
+  if (indice === -1) return;
+
+  const item = carrito[indice];
+  item.producto.stock += item.cantidad;
+  carrito.splice(indice, 1);
+
+  mostrarMensaje(`${item.producto.nombre} eliminado del carrito`, "exito");
+  actualizarCarritoDOM();
+  renderizarProductos(obtenerProductosFiltrados());
+}
+
+function actualizarCarritoDOM() {
+  listaCarrito.innerHTML = "";
+
   if (carrito.length === 0) {
-    alert("Carrito Vacio");
+    listaCarrito.innerHTML = "<li>El carrito esta vacio.</li>";
+    resumenTotal.textContent = "Total: $0.00";
     return;
   }
 
-  let resumen = "Tu Resumen\n";
-  carrito.forEach((item, index) =>{
-    resumen += `${index + 1}. ${item.producto.nombre} x${item.cantidad} = $${item.calcularSubtotal()}\n`;
+  carrito.forEach((item) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <span>${item.producto.nombre} (x${item.cantidad})</span>
+      <span>$${item.calcularSubtotal().toFixed(2)}</span>
+      <button class="btn-eliminar" data-id="${item.producto.id}">Eliminar</button>
+    `;
+    listaCarrito.appendChild(li);
+  });
+
+  document.querySelectorAll(".btn-eliminar").forEach((boton) => {
+    boton.addEventListener("click", (e) => {
+      const idProd = parseInt(e.target.getAttribute("data-id"));
+      eliminarDelCarrito(idProd);
+    });
   });
 
   const subtotal = carrito.reduce((acc, item) => acc + item.calcularSubtotal(), 0);
-  const impuesto = calcularIva(subtotal);
-  const totalPagar = subtotal + impuesto;
+  const totalConIva = subtotal + calcularIva(subtotal);
 
-  resumen += `\nsubtotal: $${subtotal.toFixed(2)}\n`;
-  resumen += `Iva (21%): + $${impuesto.toFixed(2)}\n`;
-  resumen += `Total a Pagar: $${totalPagar.toFixed(2)}`;
-
-  alert(resumen);
-
-  const confirmarCompra = prompt("¿Desea Finalizar la Compra?(Escribe Si para Confirmar)");
-
-  if ((confirmarCompra || "").trim().toUpperCase() === "SI") {
-    alert("Tu compra se confirmo con Exito");
-    return true;
-  } else {
-    alert("Falta Confirmar Compra");
-    return false;
-  }
+  resumenTotal.textContent = `Total (+IVA 21%): $${totalConIva.toFixed(2)}`;
 }
 
-function iniciar() {
-  let salir = false;
+let siguienteId = catalogo.length + 1;
 
-  while (!salir) {
-    const opcion = prompt(
-      "Bienvenido a TechStore\n" +
-      "selecciona una opcion:\n" +
-      "1. Catalogo\n" +
-      "2. Categorias\n" +
-      "3. Agregar al Carrito\n" +
-      "4. Ver Carrito y Finalizar Compra\n" +
-      "5. Salir"
-    );
-    switch (opcion) {
-      case "1":
-        alert(mostrarCatalogo());
-        break;
-      case "2":
-        alert(filtrarPorCategoria());
-        break;
-      case "3":
-        agregarCarrito();
-        break;
-      case "4":
-        const compraExitosa = verCompra();
-        if (compraExitosa) salir = true;
-        break;
-      case "5":
-        alert("Gracias por Visitar TechStore");
-        salir = true;
-        break;
-      default:
-        alert("Opcion no Valida, ingrese del 1 al 5");
-        break;
-    }
+function agregarProductoCatalogo() {
+  const nombre = inputNombre.value.trim();
+  const precio = parseFloat(inputPrecio.value);
+  const stock = parseInt(inputStock.value);
+  const categoria = selectNuevaCategoria.value;
+
+  if (nombre === "") {
+    mostrarMensaje("Ingresa un nombre valido", "error");
+    return;
   }
+  if (isNaN(precio) || precio <= 0) {
+    mostrarMensaje("Ingresa un precio valido", "error");
+    return;
+  }
+  if (isNaN(stock) || stock <= 0) {
+    mostrarMensaje("Ingresa un stock valido", "error");
+    return;
+  }
+
+  const nuevoProducto = new Producto(siguienteId, nombre, precio, categoria, stock);
+  catalogo.push(nuevoProducto);
+  siguienteId++;
+
+  inputNombre.value = "";
+  inputPrecio.value = "";
+  inputStock.value = "";
+
+  renderizarProductos(obtenerProductosFiltrados());
+  mostrarMensaje(`${nombre} agregado al catalogo`, "exito");
 }
 
-iniciar();
+btnAgregarProducto.addEventListener("click", agregarProductoCatalogo);
+
+inputBusqueda.addEventListener("input", () => {
+  renderizarProductos(obtenerProductosFiltrados());
+});
+
+selectCategoria.addEventListener("change", () => {
+  renderizarProductos(obtenerProductosFiltrados());
+});
+
+btnFinalizar.addEventListener("click", () => {
+  if (carrito.length === 0) {
+    mostrarMensaje("El carrito esta vacio", "error");
+    return;
+  }
+
+  carrito.length = 0;
+  actualizarCarritoDOM();
+  renderizarProductos(obtenerProductosFiltrados());
+  mostrarMensaje("Compra realizada con exito. ¡Gracias!", "exito");
+});
+
+renderizarProductos(catalogo);
+actualizarCarritoDOM();

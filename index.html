@@ -5,37 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador</title>
     <script src="js/main.js" defer></script>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <h1>TechStore</h1>
+
+    <div id="mensaje" class="mensaje" style="display: none;"></div>
 
     <div class="flex-container">
         <div class="seccion">
             <h2>Catalogo</h2>
             <div class="filtro-box">
+                <input type="text" id="input-busqueda" placeholder="Buscar producto...">
+            </div>
+            <div class="filtro-box">
                 <label for="selec-categoria">Filtrar por Categoria:</label>
                 <select id="selec-categoria">
-                    <option value="todas">Todas</opction>
+                    <option value="todas">Todas</option>
                     <option value="Electronica">Electronica</option>
                     <option value="Accesorios">Accesorios</option>
                     <option value="Audio">Audio</option>
                 </select>
             </div>
             <div id="contenedor-productos" class="grid-productos"></div>
-        </div>
-        <div class="seccion">
-            <h2>Tu Carrito</h2>
-            <ul id="lista=carrito">
-                <li>El Carrito esta Vacio</li>
-            </ul>
-            <div id="resumen-total" class="total-box">Total: $0.00</div>
-            <button id="btn-finalizar">Finalizar Compra</button>
+            <div class="alta-producto">
+                <h3>Agregar Producto</h3>
+                <input type="text" id="input-nombre" placeholder="Nombre">
+                <input type="number" id="input-precio" placeholder="Precio" min="0">
+                <input type="number" id="input-stock" placeholder="Stock" min="1">
+                <select id="select-nueva-categoria">
+                    <option value="Electronica">Electronica</option>
+                    <option value="Accesorios">Accesorios</option>
+                    <option value="Audio">Audio</option>
+                </select>
+                <button id="btn-agregar-producto">Agregar Producto</button>
+            </div>
         </div>
     </div>
-
-
-
-
+    <div class="seccion seccion-carrito">
+        <h2>Tu Carrito</h2>
+        <ul id="lista-carrito">
+            <li>El Carrito esta Vacio</li>
+        </ul>
+        <div id="resumen-total" class="total-box">Total: $0.00</div>
+        <button id="btn-finalizar">Finalizar Compra</button>
+    </div>
 </body>
 </html>
