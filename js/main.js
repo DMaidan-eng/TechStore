@@ -66,7 +66,7 @@ function renderizarProductos(productosAMostrar) {
         <p><strong>Categoría:</strong> ${producto.categoria}</p>
         <p><strong>Precio:</strong> $${producto.precio}</p>
         <p><strong>Stock:</strong> ${producto.stock}</p>
-        <button onclick="agregarAlCarrito(${producto.id})">Agregar al Carrito</button>
+        <button data-id="${producto.id}">Agregar al Carrito</button>
       </div>
     `;
   }
@@ -171,7 +171,7 @@ function actualizarCarritoDOM() {
     listaCarrito.innerHTML += `
       <li>
         ${itemCarrito.producto.nombre} (x${itemCarrito.cantidad}) - $${subtotal.toFixed(2)}
-        <button onclick="eliminarDelCarrito(${itemCarrito.producto.id})">Eliminar</button>
+        <button class="btn-eliminar" data-id="${itemCarrito.producto.id}">Eliminar</button>
       </li>
     `;
   }
@@ -220,6 +220,20 @@ function agregarProductoCatalogo() {
 }
 
 btnAgregarProducto.addEventListener("click", agregarProductoCatalogo);
+
+contenedorProductos.addEventListener("click", function (event) {
+  const boton = event.target.closest("button[data-id]");
+  if (boton !== null) {
+    agregarAlCarrito(Number(boton.dataset.id));
+  }
+});
+
+listaCarrito.addEventListener("click", function (event) {
+  const boton = event.target.closest("button[data-id]");
+  if (boton !== null) {
+    eliminarDelCarrito(Number(boton.dataset.id));
+  }
+});
 
 inputBusqueda.addEventListener("input", function () {
   renderizarProductos(obtenerProductosFiltrados());
